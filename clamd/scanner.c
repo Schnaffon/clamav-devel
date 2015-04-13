@@ -275,7 +275,7 @@ int scan_callback(STATBUF *sb, char *filename, const char *msg, enum cli_ftw_rea
 		}
 	}
 
-	if(optget(opts, "PreludeEnable")->enabled){
+	if(optget(scandata->opts, "PreludeEnable")->enabled){
 	    prelude_logging(filename, virname, context.virhash, context.virsize);
 	}
 
