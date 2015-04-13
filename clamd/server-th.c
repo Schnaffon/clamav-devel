@@ -49,6 +49,8 @@
 #include "shared/output.h"
 #include "shared/optparser.h"
 
+#include "shared/idmef_logging.h"
+
 #include "fan.h"
 #include "server.h"
 #include "thrmgr.h"
@@ -959,6 +961,16 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
     } else {
 	logg("HTML support disabled.\n");
     }
+
+#ifdef PRELUDE
+    if(optget(opts, "PreludeEnable")->enabled){
+        if((opt = optget(opts, "PreludeAnalyzerName"))->enabled){
+            prelude_initialize_client(opt->strarg);
+        }else{
+            prelude_initialize_client("ClamAV");
+        }
+    }
+#endif
 
     if(optget(opts,"PhishingScanURLs")->enabled) {
 
