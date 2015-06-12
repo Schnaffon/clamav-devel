@@ -134,6 +134,7 @@ typedef enum {
 #define CL_DB_UNSIGNED	    0x10000 /* internal */
 #define CL_DB_BYTECODE_STATS 0x20000
 #define CL_DB_ENHANCED      0x40000
+#define CL_DB_PCRE_STATS    0x80000
 
 /* recommended db settings */
 #define CL_DB_STDOPT	    (CL_DB_PHISHING | CL_DB_PHISHING_URLS | CL_DB_BYTECODE)
@@ -233,7 +234,10 @@ enum cl_engine_field {
     CL_ENGINE_STATS_TIMEOUT,        /* uint32_t */
     CL_ENGINE_MAX_PARTITIONS,       /* uint32_t */
     CL_ENGINE_MAX_ICONSPE,          /* uint32_t */
-    CL_ENGINE_TIME_LIMIT            /* uint32_t */
+    CL_ENGINE_TIME_LIMIT,           /* uint32_t */
+    CL_ENGINE_PCRE_MATCH_LIMIT,     /* uint64_t */
+    CL_ENGINE_PCRE_RECMATCH_LIMIT,  /* uint64_t */
+    CL_ENGINE_PCRE_MAX_FILESIZE     /* uint64_t */
 };
 
 enum bytecode_security {
@@ -398,7 +402,7 @@ extern void cl_engine_set_clcb_meta(struct cl_engine *engine, clcb_meta callback
 
 /* File properties callback */
 typedef int (*clcb_file_props)(const char *j_propstr, int rc, void *cbdata);
-extern void cl_engine_set_clcb_file_props(struct cl_engine *engine, clcb_file_props callback, void * cbdata);
+extern void cl_engine_set_clcb_file_props(struct cl_engine *engine, clcb_file_props callback);
 
 /* Statistics/intelligence gathering callbacks */
 extern void cl_engine_set_stats_set_cbdata(struct cl_engine *engine, void *cbdata);

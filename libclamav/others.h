@@ -53,6 +53,7 @@
 #ifdef HAVE_JSON
 #include "json.h"
 #endif
+#include "yara_clam.h"
 
 #if HAVE_LIBXML2
 #define CLAMAV_MIN_XMLREADER_FLAGS (XML_PARSE_NOERROR | XML_PARSE_NONET)
@@ -67,7 +68,7 @@
  * in re-enabling affected modules.
  */
 
-#define CL_FLEVEL 79
+#define CL_FLEVEL 81
 #define CL_FLEVEL_DCONF	CL_FLEVEL
 #define CL_FLEVEL_SIGTOOL CL_FLEVEL
 
@@ -315,7 +316,6 @@ struct cl_engine {
     clcb_hash cb_hash;
     clcb_meta cb_meta;
     clcb_file_props cb_file_props;
-    void *cb_file_props_data;
 
     /* Used for bytecode */
     struct cli_all_bc bcs;
@@ -352,6 +352,14 @@ struct cl_engine {
 
     /* millisecond time limit for preclassification scanning */
     uint32_t time_limit;
+
+    /* PCRE matching limitations */
+    uint64_t pcre_match_limit;
+    uint64_t pcre_recmatch_limit;
+    uint64_t pcre_max_filesize;
+
+    /* YARA */
+    struct _yara_global * yara_global;
 };
 
 struct cl_settings {
@@ -386,7 +394,6 @@ struct cl_settings {
     clcb_hash cb_hash;
     clcb_meta cb_meta;
     clcb_file_props cb_file_props;
-    void *cb_file_props_data;
 
     /* Engine max settings */
     uint64_t maxembeddedpe;  /* max size to scan MSEXE for PE */
@@ -411,6 +418,11 @@ struct cl_settings {
 
     /* Engine max settings */
     uint32_t maxiconspe; /* max number of icons to scan for PE */
+
+    /* PCRE matching limitations */
+    uint64_t pcre_match_limit;
+    uint64_t pcre_recmatch_limit;
+    uint64_t pcre_max_filesize;
 };
 
 extern int (*cli_unrar_open)(int fd, const char *dirname, unrar_state_t *state);
@@ -653,6 +665,7 @@ int cli_updatelimits(cli_ctx *, unsigned long);
 unsigned long cli_getsizelimit(cli_ctx *, unsigned long);
 int cli_matchregex(const char *str, const char *regex);
 void cli_qsort(void *a, size_t n, size_t es, int (*cmp)(const void *, const void *));
+void cli_qsort_r(void *a, size_t n, size_t es, int (*cmp)(const void*, const void *, const void *), void *arg);
 int cli_checktimelimit(cli_ctx *ctx);
 
 /* symlink behaviour */

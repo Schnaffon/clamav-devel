@@ -203,6 +203,30 @@ int cli_hex2num(const char *hex)
     return ret;
 }
 
+int cli_xtoi(const char *hex)
+{
+    int len, val, i;
+    char * hexbuf;
+
+    len = strlen(hex);
+
+    if(len % 2 == 0)
+        return cli_hex2num(hex);
+        
+    hexbuf = cli_calloc(len+2, sizeof(char));
+    if (hexbuf == NULL) {
+        cli_errmsg("cli_xtoi(): cli_malloc fails.\n");
+        return -1;
+    }
+    
+    for(i = 0; i < len; i++)
+        hexbuf[i+1] = hex[i];
+    val = cli_hex2num(hexbuf);
+    free(hexbuf);
+    return val;
+}
+
+
 char *cli_str2hex(const char *string, unsigned int len)
 {
 	char *hexstr;
@@ -665,4 +689,50 @@ char *cli_utf16_to_utf8(const char *utf16, size_t length, utf16_type type)
 	j = needed-1;
     s2[j] = '\0';
     return s2;
+}
+
+int cli_isutf8(const char *buf, unsigned int len)
+{
+	unsigned int i, j;
+
+    for(i = 0; i < len; i++) {
+        if((buf[i] & 0x80) == 0) {  /* 0xxxxxxx is plain ASCII */
+            continue;
+        } else if((buf[i] & 0x40) == 0) { /* 10xxxxxx never 1st byte */
+            return 0;
+        } else {
+            unsigned int following;
+
+            if((buf[i] & 0x20) == 0) {		/* 110xxxxx */
+                /* c = buf[i] & 0x1f; */
+                following = 1;
+            } else if((buf[i] & 0x10) == 0) {	/* 1110xxxx */
+                /* c = buf[i] & 0x0f; */
+                following = 2;
+            } else if((buf[i] & 0x08) == 0) {	/* 11110xxx */
+                /* c = buf[i] & 0x07; */
+                following = 3;
+            } else if((buf[i] & 0x04) == 0) {	/* 111110xx */
+                /* c = buf[i] & 0x03; */
+                following = 4;
+            } else if((buf[i] & 0x02) == 0) {	/* 1111110x */
+                /* c = buf[i] & 0x01; */
+                following = 5;
+            } else {
+                return 0;
+            }
+
+            for(j = 0; j < following; j++) {
+                if(++i >= len)
+                    return 0;
+
+                if((buf[i] & 0x80) == 0 || (buf[i] & 0x40))
+                    return 0;
+
+                /* c = (c << 6) + (buf[i] & 0x3f); */
+            }
+        }
+    }
+
+    return 1;
 }
